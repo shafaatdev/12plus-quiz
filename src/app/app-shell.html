@@ -1,0 +1,220 @@
+@if (loading()) {
+  <main class="loading-screen" aria-label="Loading vocabulary quiz">
+    <span class="loading-mark"><mat-icon>auto_stories</mat-icon></span>
+    <p>Preparing your word list...</p>
+  </main>
+} @else if (screen() === 'auth') {
+  <main class="auth-screen">
+    <section class="auth-panel" aria-labelledby="auth-title">
+      <a class="brand-lockup" href="#home" aria-label="Vocab Master home">
+        <span class="brand-mark"><mat-icon>auto_stories</mat-icon></span>
+        <span>Vocab<span class="brand-light">Master</span></span>
+      </a>
+      <span class="eyebrow">YOUR PERSONAL WORD DESK</span>
+      <h1 id="auth-title">{{ isSignUp() ? 'Create your account' : 'Welcome back' }}</h1>
+      <p class="auth-copy">Sign in to keep your progress and quiz history in sync.</p>
+      @if (message()) { <p class="feedback-banner error-banner" role="alert">{{ message() }}</p> }
+      @if (notice()) { <p class="feedback-banner info-banner" role="status">{{ notice() }}</p> }
+      <form class="auth-form" [formGroup]="authForm" (ngSubmit)="submitAuth()">
+        <mat-form-field appearance="outline">
+          <mat-label>Email address</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          @if (authForm.controls.email.hasError('email')) { <mat-error>Enter a valid email address.</mat-error> }
+          @if (authForm.controls.email.hasError('required')) { <mat-error>Email is required.</mat-error> }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="current-password" />
+          @if (authForm.controls.password.hasError('minlength')) { <mat-error>Use at least 6 characters.</mat-error> }
+          @if (authForm.controls.password.hasError('required')) { <mat-error>Password is required.</mat-error> }
+        </mat-form-field>
+        <button mat-flat-button class="primary-action auth-submit" type="submit" [disabled]="pending()">
+          {{ pending() ? 'Please wait...' : isSignUp() ? 'Create account' : 'Sign in' }}
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </form>
+      <p class="auth-switch">
+        {{ isSignUp() ? 'Already have an account?' : 'New to Vocab Master?' }}
+        <button type="button" class="text-button" (click)="toggleAuthMode()">{{ isSignUp() ? 'Sign in' : 'Create account' }}</button>
+      </p>
+      <p class="auth-footnote">Your learning history is private to your account.</p>
+    </section>
+    <aside class="auth-art" aria-hidden="true">
+      <div class="art-index">FIELD NOTES / 001</div>
+      <div class="book-stack">
+        <span class="book book-one"></span><span class="book book-two"></span><span class="book book-three"></span>
+        <span class="book-word">WORD<br />BY WORD</span>
+      </div>
+      <p>Make room for<br /><em>better words.</em></p>
+      <span class="art-caption">A LITTLE PRACTICE ADDS UP</span>
+    </aside>
+  </main>
+} @else {
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand-lockup" href="#home" (click)="$event.preventDefault(); navigate('home')">
+        <span class="brand-mark"><mat-icon>auto_stories</mat-icon></span>
+        <span>Vocab<span class="brand-light">Master</span></span>
+      </a>
+      <div class="side-section-label">YOUR SPACE</div>
+      <nav class="side-nav" aria-label="Main navigation">
+        <button type="button" class="nav-link" [class.active]="screen() === 'home'" (click)="navigate('home')"><mat-icon>grid_view</mat-icon><span>Overview</span></button>
+        <button type="button" class="nav-link" [class.active]="screen() === 'history'" (click)="navigate('history')"><mat-icon>history</mat-icon><span>Quiz history</span></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="daily-note">
+          <span class="note-icon"><mat-icon>lightbulb</mat-icon></span>
+          <p>Small steps, stronger vocabulary.</p>
+          <span>KEEP YOUR STREAK GOING</span>
+        </div>
+        <div class="profile-row">
+          <span class="profile-avatar">A</span>
+          <span class="profile-copy"><strong>Asaad</strong><small>{{ previewMode ? 'Local preview' : 'Learner account' }}</small></span>
+          @if (!previewMode) { <button mat-icon-button type="button" class="sign-out" aria-label="Sign out" (click)="signOut()"><mat-icon>logout</mat-icon></button> }
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="breadcrumb"><span>VOCAB MASTER</span><mat-icon>chevron_right</mat-icon><strong>{{ screen() === 'history' ? 'HISTORY' : screen() === 'quiz' ? 'QUIZ' : screen() === 'results' ? 'RESULTS' : 'OVERVIEW' }}</strong></div>
+        <div class="topbar-right">
+          @if (previewMode) { <span class="preview-badge"><span></span> PREVIEW MODE</span> }
+          <span class="today-label">{{ masteredCount() }} words mastered</span>
+          <span class="top-avatar" aria-label="Asaad">A</span>
+        </div>
+      </header>
+
+      <div class="page-content">
+        @if (message()) {
+          <div class="feedback-banner" role="status"><span>{{ message() }}</span><button mat-icon-button type="button" aria-label="Dismiss message" (click)="message.set('')"><mat-icon>close</mat-icon></button></div>
+        }
+        @switch (screen()) {
+          @case ('home') {
+            <section class="page-heading home-heading">
+              <div><span class="eyebrow">{{ todayLabel() }}</span><h1>Vocab Master Asaad</h1><p>Your words are adding up. Keep the momentum going.</p></div>
+              <button mat-stroked-button class="download-button" type="button" [disabled]="!completedHistory().length" (click)="downloadMistakes()"><mat-icon>download</mat-icon> Download mistakes</button>
+            </section>
+            <section class="stat-grid" aria-label="Vocabulary progress">
+              <mat-card class="stat-card"><mat-card-content><span class="stat-icon green-icon"><mat-icon>check_circle</mat-icon></span><span class="stat-label">MASTERED</span><strong class="stat-value">{{ masteredCount() | number }}</strong><span class="stat-foot">Words you know</span></mat-card-content></mat-card>
+              <mat-card class="stat-card"><mat-card-content><span class="stat-icon coral-icon"><mat-icon>menu_book</mat-icon></span><span class="stat-label">TO LEARN</span><strong class="stat-value">{{ toLearnCount() | number }}</strong><span class="stat-foot">Waiting in your list</span></mat-card-content></mat-card>
+              <mat-card class="stat-card"><mat-card-content><span class="stat-icon blue-icon"><mat-icon>library_books</mat-icon></span><span class="stat-label">TOTAL WORDS</span><strong class="stat-value">{{ words().length | number }}</strong><span class="stat-foot">In your vocabulary</span></mat-card-content></mat-card>
+            </section>
+            <section class="progress-section" aria-labelledby="progress-title">
+              <div class="section-heading"><div><span class="eyebrow">THE BIG PICTURE</span><h2 id="progress-title">Overall progress</h2></div><strong class="progress-percent">{{ masteryPercent() }}<span>%</span></strong></div>
+              <mat-progress-bar mode="determinate" [value]="masteryPercent()" aria-label="Overall vocabulary mastery"></mat-progress-bar>
+              <div class="progress-caption"><span>{{ masteredCount() }} mastered</span><span>{{ toLearnCount() }} to go</span></div>
+            </section>
+            <section class="home-lower">
+              <div class="launch-panel">
+                <div class="launch-topline"><span class="launch-mark"><mat-icon>bolt</mat-icon></span><span>YOUR NEXT ROUND</span><span class="launch-time">~5 MIN</span></div>
+                <h2>Ready for a<br /><em>quick challenge?</em></h2>
+                <p>15 fresh words, picked from the ones you have not mastered yet.</p>
+                <button mat-flat-button class="launch-button" type="button" [disabled]="pending() || !toLearnCount()" (click)="startQuiz()">{{ pending() ? 'Getting your quiz...' : 'Start a new quiz' }} <mat-icon>arrow_forward</mat-icon></button>
+                @if (!toLearnCount()) { <span class="all-mastered">You have mastered every word.</span> }
+                <span class="launch-decoration" aria-hidden="true">15</span>
+              </div>
+              <div class="home-side">
+                <div class="side-heading"><div><span class="eyebrow">YOUR PRACTICE</span><h2>Recent quizzes</h2></div><button class="text-button" type="button" (click)="navigate('history')">View all <mat-icon>arrow_forward</mat-icon></button></div>
+                @if (completedHistory().length) {
+                  @for (quiz of completedHistory().slice(0, 3); track quiz.id) {
+                    <div class="recent-row"><span class="recent-calendar"><mat-icon>event_note</mat-icon></span><span class="recent-info"><strong>{{ dateLabel(quiz.startedAt) }}</strong><small>{{ incorrectCount(quiz) }} to review</small></span><span class="recent-score">{{ scoreFor(quiz) }}%</span></div>
+                  }
+                } @else {
+                  <div class="empty-recent"><span><mat-icon>edit_note</mat-icon></span><p>Your first quiz is waiting.</p><small>Completed rounds will appear here.</small></div>
+                }
+              </div>
+            </section>
+          }
+
+          @case ('quiz') {
+            @if (activeQuiz(); as quiz) {
+              <section class="quiz-wrap">
+                <div class="quiz-heading"><button class="back-link" type="button" (click)="navigate('home')"><mat-icon>arrow_back</mat-icon> Leave quiz</button><span class="quiz-round">QUICK ROUND <span>·</span> WORD TO MEANING</span></div>
+                <div class="quiz-progress-row"><span>QUESTION <strong>{{ questionIndex() + 1 }}</strong> <span class="muted">OF {{ quiz.questionCount }}</span></span><span class="live-score"><mat-icon>check_circle</mat-icon> {{ quiz.correctCount }} correct</span></div>
+                <mat-progress-bar mode="determinate" [value]="quizProgress()" aria-label="Quiz progress"></mat-progress-bar>
+                @if (currentQuestion(); as question) {
+                  <mat-card class="question-card"><mat-card-content>
+                    <span class="eyebrow">CHOOSE THE CLOSEST MEANING</span>
+                    <h1>{{ question.word }}</h1>
+                    <p class="example-line">“{{ question.example }}”</p>
+                    <mat-radio-group class="answer-list" [value]="selectedAnswer()" [disabled]="answerSubmitted()" (change)="selectedAnswer.set($event.value)" aria-label="Answer choices">
+                      @for (option of question.options; track option; let optionIndex = $index) {
+                        <mat-radio-button class="answer-option" [class.option-correct]="answerSubmitted() && option === question.meaning" [class.option-incorrect]="answerSubmitted() && option === selectedAnswer() && option !== question.meaning" [value]="option">
+                          <span class="option-letter">{{ optionLetter(optionIndex) }}</span><span>{{ option }}</span>
+                          @if (answerSubmitted() && option === question.meaning) { <mat-icon class="choice-result correct-result">check_circle</mat-icon> }
+                          @else if (answerSubmitted() && option === selectedAnswer()) { <mat-icon class="choice-result incorrect-result">cancel</mat-icon> }
+                        </mat-radio-button>
+                      }
+                    </mat-radio-group>
+                    @if (answerSubmitted()) {
+                      <div class="answer-feedback" [class.feedback-correct]="question.isCorrect" [class.feedback-incorrect]="!question.isCorrect" role="status"><mat-icon>{{ question.isCorrect ? 'task_alt' : 'info' }}</mat-icon><span><strong>{{ question.isCorrect ? 'That is right.' : 'Not quite.' }}</strong> {{ question.isCorrect ? 'Keep it up.' : 'The correct meaning is shown above.' }}</span></div>
+                    }
+                    <div class="question-actions">
+                      @if (!answerSubmitted()) { <button mat-flat-button class="primary-action" type="button" [disabled]="!selectedAnswer() || pending()" (click)="submitAnswer()">{{ pending() ? 'Checking...' : 'Submit answer' }} <mat-icon>arrow_forward</mat-icon></button> }
+                      @else { <button mat-flat-button class="primary-action" type="button" [disabled]="pending()" (click)="nextQuestion()">{{ questionIndex() + 1 === quiz.questionCount ? 'See your results' : 'Next question' }} <mat-icon>arrow_forward</mat-icon></button> }
+                      <span class="keyboard-note">{{ question.number }} OF {{ quiz.questionCount }}</span>
+                    </div>
+                  </mat-card-content></mat-card>
+                }
+              </section>
+            }
+          }
+
+          @case ('results') {
+            @if (activeQuiz(); as quiz) {
+              <section class="results-wrap">
+                <span class="eyebrow">ROUND COMPLETE</span><h1>Nicely done, Asaad.</h1><p class="results-subtitle">{{ scoreMessage() }}</p>
+                <mat-card class="result-card"><mat-card-content>
+                  <div class="result-score"><span class="result-number">{{ quiz.correctCount }}<small>/ {{ quiz.questionCount }}</small></span><span class="result-label">CORRECT ANSWERS</span></div>
+                  <div class="result-divider"></div>
+                  <div class="result-percent">{{ scoreFor(quiz) }}<span>%</span><small>YOUR SCORE</small></div>
+                  <div class="result-detail"><span class="result-dot"></span>{{ quiz.questionCount - quiz.correctCount }} {{ quiz.questionCount - quiz.correctCount === 1 ? 'word' : 'words' }} to review</div>
+                </mat-card-content></mat-card>
+                <mat-expansion-panel class="review-panel">
+                  <mat-expansion-panel-header><mat-panel-title>Questions to review</mat-panel-title><mat-panel-description>{{ reviewQuestions().length }} {{ reviewQuestions().length === 1 ? 'word' : 'words' }}</mat-panel-description></mat-expansion-panel-header>
+                  @if (reviewQuestions().length) {
+                    @for (question of reviewQuestions(); track question.number) { <div class="review-row"><div><strong>{{ question.word }}</strong><span>Your answer: {{ question.selectedAnswer }}</span></div><div><span>Correct meaning</span><strong>{{ question.meaning }}</strong></div></div> }
+                  } @else { <p class="perfect-note">A perfect round. Nothing to review.</p> }
+                </mat-expansion-panel>
+                <div class="result-actions"><button mat-stroked-button class="download-button" type="button" (click)="navigate('history')"><mat-icon>history</mat-icon> View history</button><button mat-flat-button class="primary-action" type="button" (click)="startQuiz()">Take another quiz <mat-icon>arrow_forward</mat-icon></button></div>
+              </section>
+            }
+          }
+
+          @case ('history') {
+            <section class="page-heading history-heading"><div><span class="eyebrow">YOUR PRACTICE, IN ONE PLACE</span><h1>Quiz history</h1><p>Look back, spot your patterns, and keep growing.</p></div><button mat-flat-button class="primary-action" type="button" [disabled]="pending() || !toLearnCount()" (click)="startQuiz()">Start a quiz <mat-icon>arrow_forward</mat-icon></button></section>
+            <section class="history-stats" aria-label="Quiz summary">
+              <div><span>TOTAL QUIZZES</span><strong>{{ historyStats().total }}</strong></div><div><span>AVERAGE SCORE</span><strong>{{ historyStats().average }}<small>%</small></strong></div><div><span>HIGHEST SCORE</span><strong>{{ historyStats().highest }}<small>%</small></strong></div><div><span>LOWEST SCORE</span><strong>{{ historyStats().lowest }}<small>%</small></strong></div>
+            </section>
+            <section class="history-list-section">
+              <div class="history-list-heading"><div><span class="eyebrow">PAST ROUNDS</span><h2>Your quizzes</h2></div><span>{{ completedHistory().length }} COMPLETED</span></div>
+              @if (completedHistory().length) {
+                <div class="history-list">
+                  @for (quiz of completedHistory(); track quiz.id) {
+                    <article class="history-item">
+                      <div class="history-item-main">
+                        <div class="score-ring" [style.--score]="scoreFor(quiz) + '%'" [attr.aria-label]="scoreFor(quiz) + ' percent score'"><span>{{ scoreFor(quiz) }}<small>%</small></span></div>
+                        <div class="history-date"><strong>{{ dateLabel(quiz.startedAt) }}</strong><span>{{ quiz.questionCount }} questions <i></i> {{ quiz.correctCount }} correct</span></div>
+                        <div class="history-missed"><span class="missed-dot"></span>{{ incorrectCount(quiz) }} to review</div>
+                        <div class="history-actions"><button mat-stroked-button type="button" class="small-outline" (click)="selectHistory(quiz.id)">{{ selectedHistoryId() === quiz.id ? 'Hide details' : 'View details' }}</button><button mat-icon-button type="button" aria-label="Export review" matTooltip="Export review" (click)="exportReview(quiz)"><mat-icon>download</mat-icon></button></div>
+                      </div>
+                      @if (selectedHistoryId() === quiz.id) {
+                        <div class="history-detail">
+                          @for (question of quiz.questions; track question.number) { <div class="review-row"><div><strong>{{ question.word }}</strong><span>Your answer: {{ question.selectedAnswer ?? 'Not answered' }}</span></div><div><span>Correct meaning</span><strong>{{ question.meaning }}</strong></div><mat-icon [class.correct-result]="question.isCorrect" [class.incorrect-result]="question.isCorrect === false">{{ question.isCorrect ? 'check_circle' : 'cancel' }}</mat-icon></div> }
+                        </div>
+                      }
+                    </article>
+                  }
+                </div>
+              } @else {
+                <div class="history-empty"><span><mat-icon>history</mat-icon></span><h3>No completed quizzes yet</h3><p>Your finished rounds will show up here.</p><button mat-flat-button class="primary-action" type="button" [disabled]="!toLearnCount()" (click)="startQuiz()">Start your first quiz <mat-icon>arrow_forward</mat-icon></button></div>
+              }
+            </section>
+            <section class="history-tools"><div><span class="eyebrow">YOUR DATA</span><h2>Progress controls</h2><p>Reset mastered words without removing your past quizzes, or clear your saved history and progress.</p></div><div class="history-tool-actions"><button mat-stroked-button type="button" class="download-button" [disabled]="pending() || !masteredCount()" (click)="resetProgress()"><mat-icon>restart_alt</mat-icon> Reset progress</button><button mat-stroked-button type="button" class="clear-button" [disabled]="pending() || (!history().length && !masteredCount())" (click)="clearAll()"><mat-icon>delete_outline</mat-icon> Clear all</button></div></section>
+          }
+        }
+      </div>
+    </main>
+  </div>
+}

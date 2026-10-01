@@ -1,1 +1,37 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+@use './app/app';
+
+@include mat.core();
+
+$vocab-theme: mat.define-theme((
+	color: (theme-type: light, primary: mat.$green-palette, tertiary: mat.$orange-palette),
+	typography: (brand-family: 'DM Sans', plain-family: 'DM Sans', regular-weight: 400, medium-weight: 500, bold-weight: 700),
+	density: (scale: 0),
+));
+
+@include mat.all-component-themes($vocab-theme);
+
+:root {
+	--forest: #203f33;
+	--lime: #d2e98a;
+	--canvas: #f7f8f5;
+	--line: #e1e6df;
+	color-scheme: light;
+	font-family: 'DM Sans', sans-serif;
+	font-synthesis: none;
+	font-weight: 400;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+* { box-sizing: border-box; }
+html, body { min-width: 0; min-height: 100%; margin: 0; }
+body { color: #283d31; background: var(--canvas); }
+button, input { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #9fbd5e; outline-offset: 2px; }
+mat-icon { font-family: 'Material Symbols Outlined', sans-serif !important; font-weight: 400; font-style: normal; line-height: 1; letter-spacing: normal; text-transform: none; white-space: nowrap; word-wrap: normal; direction: ltr; -webkit-font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased; }
+
+@media (prefers-reduced-motion: reduce) {
+	*, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}

@@ -54,6 +54,17 @@ ng e2e
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
 
+## Vocab Master
+
+The app includes a 15-question vocabulary quiz, progress tracking, results review, quiz history, and CSV exports. Without Supabase credentials it runs in local preview mode and keeps progress in this browser's local storage.
+
+### Supabase setup
+
+1. Create a Supabase project and add its project URL and publishable key to `src/environments/environment.ts`. Keep the service-role key out of browser code and source control.
+2. Review and apply `supabase/migrations/20260930000000_vocab_quiz.sql` to create the vocabulary, progress, quiz, and RLS policies. The migration is not applied automatically.
+3. Import `public/vocabularies.json` after the migration. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the terminal environment, then run `npm run import:vocabularies`. The service-role key is used only by this one-time Node script.
+4. Run `npm start`. Account creation and sign-in use Supabase Auth; progress and quiz history are scoped to the signed-in user.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
