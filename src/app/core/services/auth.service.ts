@@ -27,9 +27,13 @@ export class AuthService {
     this.user.set(data.user);
   }
 
-  async signUp(email: string, password: string): Promise<boolean> {
+  async signUp(email: string, password: string, displayName: string): Promise<boolean> {
     const client = this.requireClient();
-    const { data, error } = await client.auth.signUp({ email, password });
+    const { data, error } = await client.auth.signUp({
+      email,
+      password,
+      options: { data: { display_name: displayName } },
+    });
     if (error) throw error;
     this.user.set(data.session?.user ?? null);
     return Boolean(data.session);

@@ -62,7 +62,7 @@ The app includes a 15-question vocabulary quiz, progress tracking, results revie
 
 1. Create a Supabase project and add its project URL and publishable key to `src/environments/environment.ts`. Keep the service-role key out of browser code and source control.
 2. Review and apply `supabase/migrations/20260930000000_vocab_quiz.sql` to create the vocabulary, progress, quiz, and RLS policies. The migration is not applied automatically.
-3. Import `public/vocabularies.json` after the migration. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in the terminal environment, then run `npm run import:vocabularies`. The service-role key is used only by this one-time Node script.
+3. Copy `.env.example` to `.env`, then fill in `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from your Supabase project. Import `public/vocabularies.json` after the migration by running `npm run import:vocabularies`. The `.env` file is git-ignored, and the service-role key is used only by this one-time Node script.
 4. Run `npm start`. Account creation and sign-in use Supabase Auth; progress and quiz history are scoped to the signed-in user.
 
 ## Additional Resources

@@ -5,6 +5,8 @@ import { QuizQuestion, QuizSession, Vocabulary } from '../models/quiz.models';
 
 const previewStorageKey = 'vocab-master-preview-v1';
 const quizLength = 15;
+const vocabularyPageSize = 1000;
+const vocabularyLoadLimit = 2500;
 
 interface PreviewData {
   masteredIds: number[];
@@ -52,8 +54,8 @@ export class QuizService {
     const userId = this.auth.user()?.id;
     if (!client || !userId) return;
 
-    const [wordResult, progressResult, attemptResult] = await Promise.all([
-      client.from('vocabularies').select('id, word, meaning, example, options').order('id'),
+    const [vocabularies, progressResult, attemptResult] = await Promise.all([
+      this.fetchVocabularies(client),
       client.from('user_word_progress').select('vocabulary_id').eq('user_id', userId),
       client
         .from('quiz_attempts')
@@ -61,7 +63,6 @@ export class QuizService {
         .eq('user_id', userId)
         .order('started_at', { ascending: false }),
     ]);
-    if (wordResult.error) throw wordResult.error;
     if (progressResult.error) throw progressResult.error;
     if (attemptResult.error) throw attemptResult.error;
 
@@ -81,7 +82,7 @@ export class QuizService {
       }
     }
 
-    this.words.set((wordResult.data ?? []) as unknown as Vocabulary[]);
+    this.words.set(vocabularies);
     this.masteredIds.set(
       ((progressResult.data ?? []) as unknown as { vocabulary_id: number }[]).map(
         (progress) => progress.vocabulary_id,
@@ -278,6 +279,28 @@ export class QuizService {
     const userId = this.auth.user()?.id;
     if (!userId) throw new Error('Sign in to save your quiz progress.');
     return userId;
+  }
+
+  private async fetchVocabularies(
+    client: NonNullable<SupabaseService['client']>,
+  ): Promise<Vocabulary[]> {
+    const vocabularies: Vocabulary[] = [];
+
+    for (let offset = 0; offset < vocabularyLoadLimit; offset += vocabularyPageSize) {
+      const pageLimit = Math.min(vocabularyPageSize, vocabularyLoadLimit - offset);
+      const { data, error } = await client
+        .from('vocabularies')
+        .select('id, word, meaning, example, options')
+        .order('id')
+        .range(offset, offset + pageLimit - 1);
+      if (error) throw error;
+
+      const page = (data ?? []) as unknown as Vocabulary[];
+      vocabularies.push(...page);
+      if (page.length < pageLimit) break;
+    }
+
+    return vocabularies;
   }
 
   private restorePreview(): void {

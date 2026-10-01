@@ -1,6 +1,7 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -39,6 +40,9 @@ export class App implements OnInit {
   private readonly data = inject(QuizService);
   private readonly supabase = inject(SupabaseService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly displayNameValidator: ValidatorFn = (control) =>
+    typeof control.value === 'string' && control.value.trim() ? null : { required: true };
 
   readonly screen = signal<Screen>('home');
   readonly loading = signal(true);
@@ -53,13 +57,25 @@ export class App implements OnInit {
   readonly selectedHistoryId = signal('');
   readonly previewMode = !this.supabase.isConfigured;
   readonly authForm = this.formBuilder.nonNullable.group({
+    displayName: [''],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: [''],
   });
+  private readonly passwordsMatchValidator: ValidatorFn = (control) => {
+    const password = control.parent?.get('password')?.value;
+    if (!control.value || !password) return null;
+    return control.value === password ? null : { passwordMismatch: true };
+  };
 
   readonly words = this.data.words;
   readonly masteredIds = this.data.masteredIds;
   readonly history = this.data.history;
+  readonly learnerName = computed(() => {
+    const displayName: unknown = this.auth.user()?.user_metadata['display_name'];
+    return typeof displayName === 'string' && displayName.trim() ? displayName.trim() : 'Asaad';
+  });
+  readonly learnerInitial = computed(() => this.learnerName().charAt(0).toUpperCase());
   readonly masteredCount = computed(() => this.masteredIds().length);
   readonly toLearnCount = computed(() => Math.max(0, this.words().length - this.masteredCount()));
   readonly masteryPercent = computed(() =>
@@ -91,6 +107,10 @@ export class App implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    this.authForm.controls.password.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.authForm.controls.confirmPassword.updateValueAndValidity());
+
     try {
       if (this.supabase.isConfigured) {
         await this.auth.initialize();
@@ -188,10 +208,10 @@ export class App implements OnInit {
     this.pending.set(true);
     this.message.set('');
     this.notice.set('');
-    const { email, password } = this.authForm.getRawValue();
+    const { displayName, email, password } = this.authForm.getRawValue();
     try {
       if (this.isSignUp()) {
-        const hasSession = await this.auth.signUp(email, password);
+        const hasSession = await this.auth.signUp(email, password, displayName.trim());
         if (!hasSession) {
           this.notice.set('Check your email to confirm your account, then sign in.');
           return;
@@ -209,7 +229,20 @@ export class App implements OnInit {
   }
 
   toggleAuthMode(): void {
-    this.isSignUp.update((isSignUp) => !isSignUp);
+    const isSignUp = !this.isSignUp();
+    this.isSignUp.set(isSignUp);
+    const { displayName, confirmPassword } = this.authForm.controls;
+    if (isSignUp) {
+      displayName.addValidators([this.displayNameValidator, Validators.maxLength(50)]);
+      confirmPassword.addValidators([Validators.required, this.passwordsMatchValidator]);
+    } else {
+      displayName.clearValidators();
+      confirmPassword.clearValidators();
+      displayName.reset('');
+      confirmPassword.reset('');
+    }
+    displayName.updateValueAndValidity();
+    confirmPassword.updateValueAndValidity();
     this.message.set('');
     this.notice.set('');
   }
