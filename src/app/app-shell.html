@@ -146,7 +146,7 @@
           @case ('quiz') {
             @if (activeQuiz(); as quiz) {
               <section class="quiz-wrap">
-                <div class="quiz-heading"><button class="back-link" type="button" (click)="navigate('home')"><mat-icon>arrow_back</mat-icon> Leave quiz</button><span class="quiz-round">QUICK ROUND <span>·</span> WORD TO MEANING</span></div>
+                <div class="quiz-heading"><button class="back-link" type="button" (click)="navigate('home')"><mat-icon>arrow_back</mat-icon> Leave quiz</button></div>
                 <div class="quiz-progress-row"><span>QUESTION <strong>{{ questionIndex() + 1 }}</strong> <span class="muted">OF {{ quiz.questionCount }}</span></span><span class="live-score"><mat-icon>check_circle</mat-icon> {{ quiz.correctCount }} correct</span></div>
                 <mat-progress-bar mode="determinate" [value]="quizProgress()" aria-label="Quiz progress"></mat-progress-bar>
                 @if (currentQuestion(); as question) {
