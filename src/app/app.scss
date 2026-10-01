@@ -284,3 +284,59 @@ app-root { display: block; min-height: 100dvh; }
 	.history-item-main { align-items: flex-start; }
 	.history-date { flex-basis: calc(100% - 65px); }
 }
+
+@media (max-width: 760px) {
+	:root {
+		--mobile-meta-size: 13px;
+		--mobile-body-size: 15px;
+		--mobile-control-size: 16px;
+		--mobile-section-size: 20px;
+	}
+
+	.side-section-label, .eyebrow, .section-heading .eyebrow, .side-heading .eyebrow,
+	.history-list-heading .eyebrow, .history-tools .eyebrow, .stat-label,
+	.history-stats span, .history-list-heading > span, .launch-topline, .launch-time,
+	.keyboard-note, .profile-copy small, .stat-foot, .progress-caption,
+	.daily-note > span:last-child, .recent-info strong, .recent-info small,
+	.breadcrumb, .preview-badge, .review-panel .mat-expansion-panel-header-description,
+	.quiz-round, .quiz-progress-row, .option-letter, .result-label, .result-percent small,
+	.review-row span, .score-ring span, .score-ring small, .history-date > span {
+		font-size: var(--mobile-meta-size);
+	}
+
+	.page-heading p, .results-subtitle, .daily-note p, .launch-panel p,
+	.empty-recent p, .empty-recent small, .example-line, .result-detail,
+	.review-row strong, .history-date strong, .history-missed,
+	.history-empty p, .history-tools p, .auth-copy, .auth-footnote,
+	.all-mastered, .perfect-note, .loading-screen {
+		font-size: var(--mobile-body-size);
+	}
+
+	.nav-link, .text-button, .back-link, .primary-action, .download-button,
+	.launch-button, .feedback-banner, .answer-option, .answer-feedback,
+	.review-panel .mat-expansion-panel-header, .small-outline, .clear-button,
+	.auth-switch, .auth-switch .text-button {
+		font-size: var(--mobile-control-size);
+	}
+	.mat-mdc-button-base .mdc-button__label,
+	.answer-option .mdc-label { font-size: var(--mobile-control-size); }
+	mat-error, .mat-mdc-form-field-error { font-size: 14px; }
+
+	.page-heading h1 { font-size: 29px; }
+	.section-heading h2, .side-heading h2, .history-list-heading h2,
+	.history-tools h2 { font-size: var(--mobile-section-size); }
+	.launch-panel h2 { font-size: 27px; }
+	.question-card h1 { font-size: 36px; }
+	.results-wrap > h1 { font-size: 35px; }
+	.history-stats strong { font-size: 25px; }
+	.history-empty h3 { font-size: 18px; }
+	.result-number { font-size: 42px; }
+	.result-percent { font-size: 31px; }
+	.auth-panel h1 { font-size: 31px; }
+}
+
+@media (max-width: 390px) {
+	.breadcrumb > span, .breadcrumb > mat-icon { display: none; }
+	.breadcrumb, .preview-badge { font-size: 13px; }
+	.topbar-right { gap: 8px; }
+}
