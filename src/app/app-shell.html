@@ -92,14 +92,14 @@
     </aside>
 
     <main class="main-area">
-      <header class="topbar">
+      <!-- <header class="topbar">
         <div class="breadcrumb"><span>VOCAB MASTER</span><mat-icon>chevron_right</mat-icon><strong>{{ screen() === 'history' ? 'HISTORY' : screen() === 'quiz' ? 'QUIZ' : screen() === 'results' ? 'RESULTS' : 'OVERVIEW' }}</strong></div>
         <div class="topbar-right">
           @if (previewMode) { <span class="preview-badge"><span></span> PREVIEW MODE</span> }
           <span class="today-label">{{ masteredCount() }} words mastered</span>
           <span class="top-avatar" [attr.aria-label]="learnerName()">{{ learnerInitial() }}</span>
         </div>
-      </header>
+      </header> -->
 
       <div class="page-content">
         @if (message()) {
@@ -108,7 +108,7 @@
         @switch (screen()) {
           @case ('home') {
             <section class="page-heading home-heading">
-              <div><span class="eyebrow">{{ todayLabel() }}</span><h1>Vocab Master {{ learnerName() }}</h1><p>Your words are adding up. Keep the momentum going.</p></div>
+              <div><span class="eyebrow">Learning 11+ vocabulary requires mastering advanced words, synonyms, and antonyms.</span><h1>Vocab Master '{{ learnerName() }}'</h1><p>Your words are adding up. Keep the momentum going.</p></div>
             </section>
             
             <section class="home-lower">
