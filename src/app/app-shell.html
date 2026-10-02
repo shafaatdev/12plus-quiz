@@ -156,7 +156,22 @@
                   <mat-card class="question-card"><mat-card-content>
                     <span class="eyebrow">CHOOSE THE CLOSEST MEANING</span>
                     <h1>{{ question.word }}</h1>
-                    <p class="example-line">“{{ question.example }}”</p>
+                    <div class="example-row">
+                      <p class="example-line">“{{ question.example }}”</p>
+                      @if (canSpeakExample) {
+                        <button
+                          mat-icon-button
+                          class="speak-example-button"
+                          type="button"
+                          [attr.aria-label]="speakingExample() ? 'Stop reading example' : 'Read example aloud'"
+                          [attr.aria-pressed]="speakingExample()"
+                          [matTooltip]="speakingExample() ? 'Stop reading' : 'Read example aloud'"
+                          (click)="toggleExampleSpeech(question.example)"
+                        >
+                          <mat-icon>{{ speakingExample() ? 'stop' : 'volume_up' }}</mat-icon>
+                        </button>
+                      }
+                    </div>
                     <mat-radio-group class="answer-list" [value]="selectedAnswer()" [disabled]="answerSubmitted()" (change)="selectedAnswer.set($event.value)" aria-label="Answer choices">
                       @for (option of question.options; track option; let optionIndex = $index) {
                         <mat-radio-button class="answer-option" [class.option-correct]="answerSubmitted() && option === question.meaning" [class.option-incorrect]="answerSubmitted() && option === selectedAnswer() && option !== question.meaning" [value]="option">

@@ -115,7 +115,10 @@ app-root { display: block; min-height: 100dvh; }
 .question-card { margin-top: 26px; border: 1px solid var(--line); border-radius: 6px !important; background: #fff; box-shadow: none !important; }
 .question-card mat-card-content { padding: 32px 36px !important; }
 .question-card h1 { margin: 10px 0 7px; color: #203b30; font-family: Georgia, 'Times New Roman', serif; font-size: 39px; font-weight: 400; }
-.example-line { margin: 0; color: #7d877f; font-size: 12px; font-style: italic; line-height: 1.6; }
+.example-row { display: flex; align-items: center; gap: 8px; }
+.example-line { flex: 1; min-width: 0; margin: 0; color: #7d877f; font-size: 12px; font-style: italic; line-height: 1.6; }
+.question-card .speak-example-button { flex: 0 0 auto; width: 44px; height: 44px; color: #315f3b; }
+.question-card .speak-example-button:hover, .question-card .speak-example-button[aria-pressed='true'] { background: #edf5e8; }
 .answer-list { display: grid; gap: 9px; margin-top: 27px; }
 .answer-option { display: flex; align-items: center; min-height: 50px; padding: 0 13px; border: 1px solid #e0e5df; border-radius: 4px; color: #394b3f; background: #fff; font-size: 12px; transition: border-color 120ms ease, background 120ms ease; }
 .answer-option:hover { border-color: #8ca47a; background: #f7f9f3; }

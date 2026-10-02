@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -39,7 +39,7 @@ type Screen = 'home' | 'quiz' | 'results' | 'history' | 'auth';
   selector: 'app-root',
   templateUrl: './app-shell.html',
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly data = inject(QuizService);
   private readonly supabase = inject(SupabaseService);
@@ -59,6 +59,8 @@ export class App implements OnInit {
   readonly questionIndex = signal(0);
   readonly selectedAnswer = signal('');
   readonly answerSubmitted = signal(false);
+  readonly canSpeakExample = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  readonly speakingExample = signal(false);
   readonly selectedHistoryId = signal('');
   readonly previewMode = !this.supabase.isConfigured;
   readonly authForm = this.formBuilder.nonNullable.group({
@@ -72,6 +74,9 @@ export class App implements OnInit {
     if (!control.value || !password) return null;
     return control.value === password ? null : { passwordMismatch: true };
   };
+  private activeUtterance: SpeechSynthesisUtterance | null = null;
+  private preferredSpeechVoice: SpeechSynthesisVoice | null = null;
+  private readonly handleSpeechVoicesChanged = (): void => this.updatePreferredSpeechVoice();
 
   readonly words = this.data.words;
   readonly masteredIds = this.data.masteredIds;
@@ -112,6 +117,11 @@ export class App implements OnInit {
   });
 
   async ngOnInit(): Promise<void> {
+    if (this.canSpeakExample) {
+      this.updatePreferredSpeechVoice();
+      window.speechSynthesis.addEventListener('voiceschanged', this.handleSpeechVoicesChanged);
+    }
+
     this.authForm.controls.password.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.authForm.controls.confirmPassword.updateValueAndValidity());
@@ -136,9 +146,34 @@ export class App implements OnInit {
     }
   }
 
+  ngOnDestroy(): void {
+    if (this.canSpeakExample) {
+      window.speechSynthesis.removeEventListener('voiceschanged', this.handleSpeechVoicesChanged);
+    }
+    this.stopExampleSpeech();
+  }
+
   navigate(screen: 'home' | 'history'): void {
+    this.stopExampleSpeech();
     this.message.set('');
     this.screen.set(screen);
+  }
+
+  toggleExampleSpeech(example: string): void {
+    if (!this.canSpeakExample) return;
+    if (this.speakingExample()) {
+      this.stopExampleSpeech();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(example);
+    utterance.lang = 'en-GB';
+    if (this.preferredSpeechVoice) utterance.voice = this.preferredSpeechVoice;
+    utterance.onend = () => this.finishExampleSpeech(utterance);
+    utterance.onerror = () => this.finishExampleSpeech(utterance);
+    this.activeUtterance = utterance;
+    this.speakingExample.set(true);
+    window.speechSynthesis.speak(utterance);
   }
 
   async startQuiz(): Promise<void> {
@@ -184,6 +219,7 @@ export class App implements OnInit {
   async nextQuestion(): Promise<void> {
     const quiz = this.activeQuiz();
     if (!quiz) return;
+    this.stopExampleSpeech();
 
     if (this.questionIndex() + 1 === quiz.questionCount) {
       this.pending.set(true);
@@ -253,6 +289,7 @@ export class App implements OnInit {
   }
 
   async signOut(): Promise<void> {
+    this.stopExampleSpeech();
     try {
       await this.auth.signOut();
       this.data.words.set([]);
@@ -374,6 +411,41 @@ export class App implements OnInit {
 
   private errorText(error: unknown): string {
     return error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+  }
+
+  private stopExampleSpeech(): void {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    this.activeUtterance = null;
+    this.speakingExample.set(false);
+  }
+
+  private finishExampleSpeech(utterance: SpeechSynthesisUtterance): void {
+    if (this.activeUtterance !== utterance) return;
+    this.activeUtterance = null;
+    this.speakingExample.set(false);
+  }
+
+  private updatePreferredSpeechVoice(): void {
+    const englishVoices = window.speechSynthesis
+      .getVoices()
+      .filter((voice) => voice.lang.toLowerCase().startsWith('en'));
+    const localEnglishVoices = englishVoices.filter((voice) => voice.localService);
+    const candidateVoices = localEnglishVoices.length ? localEnglishVoices : englishVoices;
+    const scoreVoice = (voice: SpeechSynthesisVoice): number => {
+      const normalizedLanguage = voice.lang.toLowerCase().replace('_', '-');
+      const qualityName = /natural|neural|premium|enhanced/i.test(voice.name);
+      const providerName = /google|microsoft/i.test(voice.name);
+
+      return (normalizedLanguage === 'en-gb' ? 100 : 50)
+        + (qualityName ? 80 : 0)
+        + (providerName ? 15 : 0);
+    };
+
+    this.preferredSpeechVoice = [...candidateVoices].sort(
+      (first, second) => scoreVoice(second) - scoreVoice(first),
+    )[0] ?? null;
   }
 
   private async requestConfirmation(data: ConfirmationDialogData): Promise<boolean> {
