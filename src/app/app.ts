@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angu
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,10 +12,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { firstValueFrom } from 'rxjs';
 import { QuizSession } from './core/models/quiz.models';
 import { AuthService } from './core/services/auth.service';
 import { QuizService } from './core/services/quiz.service';
 import { SupabaseService } from './core/services/supabase.service';
+import { ConfirmationDialog, ConfirmationDialogData } from './shared/components/confirmation-dialog/confirmation-dialog';
 
 type Screen = 'home' | 'quiz' | 'results' | 'history' | 'auth';
 
@@ -23,6 +26,7 @@ type Screen = 'home' | 'quiz' | 'results' | 'history' | 'auth';
     DecimalPipe,
     MatButtonModule,
     MatCardModule,
+    MatDialogModule,
     MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
@@ -40,6 +44,7 @@ export class App implements OnInit {
   private readonly data = inject(QuizService);
   private readonly supabase = inject(SupabaseService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
   private readonly displayNameValidator: ValidatorFn = (control) =>
     typeof control.value === 'string' && control.value.trim() ? null : { required: true };
@@ -295,7 +300,13 @@ export class App implements OnInit {
   }
 
   async resetProgress(): Promise<void> {
-    if (!window.confirm('Reset mastered words? Your quiz history will stay.')) return;
+    const confirmed = await this.requestConfirmation({
+      title: 'Reset progress?',
+      message: 'This will clear mastered words. Your quiz history will stay.',
+      confirmLabel: 'Reset progress',
+    });
+    if (!confirmed) return;
+
     this.pending.set(true);
     try {
       await this.data.resetProgress();
@@ -308,7 +319,13 @@ export class App implements OnInit {
   }
 
   async clearAll(): Promise<void> {
-    if (!window.confirm('Clear all quiz history and progress? This cannot be undone.')) return;
+    const confirmed = await this.requestConfirmation({
+      title: 'Clear all data?',
+      message: 'This will permanently clear your quiz history and progress. This cannot be undone.',
+      confirmLabel: 'Clear all',
+    });
+    if (!confirmed) return;
+
     this.pending.set(true);
     try {
       await this.data.clearAll();
@@ -357,5 +374,12 @@ export class App implements OnInit {
 
   private errorText(error: unknown): string {
     return error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+  }
+
+  private async requestConfirmation(data: ConfirmationDialogData): Promise<boolean> {
+    const result = await firstValueFrom(
+      this.dialog.open(ConfirmationDialog, { data, role: 'alertdialog' }).afterClosed(),
+    );
+    return result === true;
   }
 }
