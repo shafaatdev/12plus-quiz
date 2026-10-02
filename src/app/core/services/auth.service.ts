@@ -32,7 +32,10 @@ export class AuthService {
     const { data, error } = await client.auth.signUp({
       email,
       password,
-      options: { data: { display_name: displayName } },
+      options: {
+        data: { display_name: displayName },
+        emailRedirectTo: new URL('.', window.location.href).toString(),
+      },
     });
     if (error) throw error;
     this.user.set(data.session?.user ?? null);
