@@ -109,21 +109,10 @@
           @case ('home') {
             <section class="page-heading home-heading">
               <div><span class="eyebrow">{{ todayLabel() }}</span><h1>Vocab Master {{ learnerName() }}</h1><p>Your words are adding up. Keep the momentum going.</p></div>
-              <button mat-stroked-button class="download-button" type="button" [disabled]="!completedHistory().length" (click)="downloadMistakes()"><mat-icon>download</mat-icon> Download mistakes</button>
             </section>
-            <section class="stat-grid" aria-label="Vocabulary progress">
-              <mat-card class="stat-card"><mat-card-content><span class="stat-icon green-icon"><mat-icon>check_circle</mat-icon></span><span class="stat-label">MASTERED</span><strong class="stat-value">{{ masteredCount() | number }}</strong><span class="stat-foot">Words you know</span></mat-card-content></mat-card>
-              <mat-card class="stat-card"><mat-card-content><span class="stat-icon coral-icon"><mat-icon>menu_book</mat-icon></span><span class="stat-label">TO LEARN</span><strong class="stat-value">{{ toLearnCount() | number }}</strong><span class="stat-foot">Waiting in your list</span></mat-card-content></mat-card>
-              <mat-card class="stat-card"><mat-card-content><span class="stat-icon blue-icon"><mat-icon>library_books</mat-icon></span><span class="stat-label">TOTAL WORDS</span><strong class="stat-value">{{ words().length | number }}</strong><span class="stat-foot">In your vocabulary</span></mat-card-content></mat-card>
-            </section>
-            <section class="progress-section" aria-labelledby="progress-title">
-              <div class="section-heading"><div><span class="eyebrow">THE BIG PICTURE</span><h2 id="progress-title">Overall progress</h2></div><strong class="progress-percent">{{ masteryPercent() }}<span>%</span></strong></div>
-              <mat-progress-bar mode="determinate" [value]="masteryPercent()" aria-label="Overall vocabulary mastery"></mat-progress-bar>
-              <div class="progress-caption"><span>{{ masteredCount() }} mastered</span><span>{{ toLearnCount() }} to go</span></div>
-            </section>
+            
             <section class="home-lower">
               <div class="launch-panel">
-                <div class="launch-topline"><span class="launch-mark"><mat-icon>bolt</mat-icon></span><span>YOUR NEXT ROUND</span><span class="launch-time">~5 MIN</span></div>
                 <h2>Ready for a<br /><em>quick challenge?</em></h2>
                 <p>15 fresh words, picked from the ones you have not mastered yet.</p>
                 <button mat-flat-button class="launch-button" type="button" [disabled]="pending() || !toLearnCount()" (click)="startQuiz()">{{ pending() ? 'Getting your quiz...' : 'Start a new quiz' }} <mat-icon>arrow_forward</mat-icon></button>
@@ -140,7 +129,21 @@
                   <div class="empty-recent"><span><mat-icon>edit_note</mat-icon></span><p>Your first quiz is waiting.</p><small>Completed rounds will appear here.</small></div>
                 }
               </div>
+            </section>            
+            
+            <section class="progress-section" aria-labelledby="progress-title">
+              <div class="section-heading"><div><span class="eyebrow">THE BIG PICTURE</span><h2 id="progress-title">Overall progress</h2></div><strong class="progress-percent">{{ masteryPercent() }}<span>%</span></strong></div>
+              <mat-progress-bar mode="determinate" [value]="masteryPercent()" aria-label="Overall vocabulary mastery"></mat-progress-bar>
+              <div class="progress-caption"><span>{{ masteredCount() }} mastered</span><span>{{ toLearnCount() }} to go</span></div>
             </section>
+
+            <section class="stat-grid" aria-label="Vocabulary progress">
+              <mat-card class="stat-card"><mat-card-content><span class="stat-icon green-icon"><mat-icon>check_circle</mat-icon></span><span class="stat-label">MASTERED</span><strong class="stat-value">{{ masteredCount() | number }}</strong><span class="stat-foot">Words you know</span></mat-card-content></mat-card>
+              <mat-card class="stat-card"><mat-card-content><span class="stat-icon coral-icon"><mat-icon>menu_book</mat-icon></span><span class="stat-label">TO LEARN</span><strong class="stat-value">{{ toLearnCount() | number }}</strong><span class="stat-foot">Waiting in your list</span></mat-card-content></mat-card>
+              <mat-card class="stat-card"><mat-card-content><span class="stat-icon blue-icon"><mat-icon>library_books</mat-icon></span><span class="stat-label">TOTAL WORDS</span><strong class="stat-value">{{ words().length | number }}</strong><span class="stat-foot">In your vocabulary</span></mat-card-content></mat-card>
+            </section>
+
+            <button mat-stroked-button class="download-button" type="button" [disabled]="!completedHistory().length" (click)="downloadMistakes()"><mat-icon>download</mat-icon> Download mistakes</button>
           }
 
           @case ('quiz') {
@@ -157,7 +160,7 @@
                     <mat-radio-group class="answer-list" [value]="selectedAnswer()" [disabled]="answerSubmitted()" (change)="selectedAnswer.set($event.value)" aria-label="Answer choices">
                       @for (option of question.options; track option; let optionIndex = $index) {
                         <mat-radio-button class="answer-option" [class.option-correct]="answerSubmitted() && option === question.meaning" [class.option-incorrect]="answerSubmitted() && option === selectedAnswer() && option !== question.meaning" [value]="option">
-                          <span class="option-letter">{{ optionLetter(optionIndex) }}</span><span>{{ option }}</span>
+                          <span>{{ option }}</span>
                           @if (answerSubmitted() && option === question.meaning) { <mat-icon class="choice-result correct-result">check_circle</mat-icon> }
                           @else if (answerSubmitted() && option === selectedAnswer()) { <mat-icon class="choice-result incorrect-result">cancel</mat-icon> }
                         </mat-radio-button>
