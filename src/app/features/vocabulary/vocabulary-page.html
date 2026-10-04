@@ -1,0 +1,34 @@
+<section class="page-heading home-heading">
+  <div><a class="back-link" routerLink="/dashboard"><mat-icon>arrow_back</mat-icon> All sections</a><h1>Vocab Master '{{ learnerName() }}'</h1><p>Your words are adding up. Keep the momentum going.</p></div>
+</section>
+@if (message()) { <div class="feedback-banner" role="status">{{ message() }}</div> }
+<section class="home-lower">
+  <div class="launch-panel">
+    <h2>Ready for a<br /><em>quick challenge?</em></h2>
+    <p>15 fresh words, picked from the ones you have not mastered yet.</p>
+    <button mat-flat-button class="launch-button" type="button" [disabled]="flow.pending() || !toLearnCount()" (click)="startQuiz()">{{ flow.pending() ? 'Getting your quiz...' : 'Start a new quiz' }} <mat-icon>arrow_forward</mat-icon></button>
+    @if (!toLearnCount()) { <span class="all-mastered">You have mastered every word.</span> }
+    <span class="launch-decoration" aria-hidden="true">15</span>
+  </div>
+  <div class="home-side">
+    <div class="side-heading"><div><span class="eyebrow">YOUR PRACTICE</span><h2>Recent quizzes</h2></div><a mat-stroked-button class="download-button" routerLink="/vocabulary/history">View all <mat-icon>arrow_forward</mat-icon></a></div>
+    @if (completedHistory().length) {
+      @for (quiz of completedHistory().slice(0, 3); track quiz.id) {
+        <div class="recent-row"><span class="recent-calendar"><mat-icon>event_note</mat-icon></span><span class="recent-info"><strong>{{ dateLabel(quiz.startedAt) }}</strong><small>{{ incorrectCount(quiz.questions) }} to review</small></span><span class="recent-score">{{ scoreFor(quiz.correctCount, quiz.questionCount) }}%</span></div>
+      }
+    } @else {
+      <div class="empty-recent"><span><mat-icon>edit_note</mat-icon></span><p>Your first quiz is waiting.</p><small>Completed rounds will appear here.</small></div>
+    }
+  </div>
+</section>
+<section class="progress-section" aria-labelledby="progress-title">
+  <div class="section-heading"><div><span class="eyebrow">THE BIG PICTURE</span><h2 id="progress-title">Overall progress</h2></div><strong class="progress-percent">{{ masteryPercent() }}<span>%</span></strong></div>
+  <mat-progress-bar mode="determinate" [value]="masteryPercent()" aria-label="Overall vocabulary mastery"></mat-progress-bar>
+  <div class="progress-caption"><span>{{ masteredCount() }} mastered</span><span>{{ toLearnCount() }} to go</span></div>
+</section>
+<section class="stat-grid" aria-label="Vocabulary progress">
+  <mat-card class="stat-card"><mat-card-content><span class="stat-icon green-icon"><mat-icon>check_circle</mat-icon></span><span class="stat-label">MASTERED</span><strong class="stat-value">{{ masteredCount() | number }}</strong><span class="stat-foot">Words you know</span></mat-card-content></mat-card>
+  <mat-card class="stat-card"><mat-card-content><span class="stat-icon coral-icon"><mat-icon>menu_book</mat-icon></span><span class="stat-label">TO LEARN</span><strong class="stat-value">{{ toLearnCount() | number }}</strong><span class="stat-foot">Waiting in your list</span></mat-card-content></mat-card>
+  <mat-card class="stat-card"><mat-card-content><span class="stat-icon blue-icon"><mat-icon>library_books</mat-icon></span><span class="stat-label">TOTAL WORDS</span><strong class="stat-value">{{ words().length | number }}</strong><span class="stat-foot">In your vocabulary</span></mat-card-content></mat-card>
+</section>
+<button mat-stroked-button class="download-button" type="button" [disabled]="!completedHistory().length" (click)="downloadMistakes()"><mat-icon>download</mat-icon> Download mistakes</button>

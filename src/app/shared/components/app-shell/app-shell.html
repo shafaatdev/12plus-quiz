@@ -1,0 +1,50 @@
+<div class="app-shell">
+  <aside id="primary-navigation" class="sidebar" [class.mobile-open]="mobileNavigationOpen()" aria-label="Main navigation">
+    <a class="brand-lockup" routerLink="/dashboard">
+      <span class="brand-mark"><mat-icon>auto_stories</mat-icon></span>
+      <span>Vocab<span class="brand-light">Master</span></span>
+    </a>
+    <div class="side-section-label">YOUR SPACE</div>
+    <nav class="side-nav">
+      <a class="nav-link" routerLink="/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMobileNavigation()"><mat-icon>grid_view</mat-icon><span>Dashboard</span></a>
+      <a class="nav-link" routerLink="/vocabulary" routerLinkActive="active" (click)="closeMobileNavigation()"><mat-icon>menu_book</mat-icon><span>Vocabulary</span></a>
+      <a class="nav-link" routerLink="/non-verbal" routerLinkActive="active" (click)="closeMobileNavigation()"><mat-icon>extension</mat-icon><span>Non Verbal</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="daily-note">
+        <span class="note-icon"><mat-icon>lightbulb</mat-icon></span>
+        <p>Small steps, stronger vocabulary.</p>
+        <span>KEEP YOUR STREAK GOING</span>
+      </div>
+      <div class="profile-row">
+        <span class="profile-avatar">{{ learnerInitial() }}</span>
+        <span class="profile-copy"><strong>{{ learnerName() }}</strong><small>{{ previewMode ? 'Local preview' : 'Learner account' }}</small></span>
+        @if (!previewMode) { <button mat-icon-button type="button" class="sign-out" aria-label="Sign out" (click)="signOut()"><mat-icon>logout</mat-icon></button> }
+      </div>
+    </div>
+  </aside>
+  @if (mobileNavigationOpen()) {
+    <button class="mobile-menu-backdrop" type="button" aria-label="Close navigation menu" (click)="closeMobileNavigation()"></button>
+  }
+  <main class="main-area">
+    <header class="mobile-topbar">
+      <button
+        mat-icon-button
+        class="mobile-menu-toggle"
+        type="button"
+        [attr.aria-label]="mobileNavigationOpen() ? 'Close navigation menu' : 'Open navigation menu'"
+        aria-controls="primary-navigation"
+        [attr.aria-expanded]="mobileNavigationOpen()"
+        (click)="toggleMobileNavigation()"
+      ><mat-icon>{{ mobileNavigationOpen() ? 'close' : 'menu' }}</mat-icon></button>
+      <a class="mobile-brand" routerLink="/dashboard" (click)="closeMobileNavigation()">
+        <span class="brand-mark"><mat-icon>auto_stories</mat-icon></span>
+        <span>Vocab<span class="brand-light">Master</span></span>
+      </a>
+    </header>
+    <div class="page-content">
+      @if (message()) { <div class="feedback-banner error-banner" role="alert"><span>{{ message() }}</span><button mat-icon-button type="button" aria-label="Dismiss message" (click)="message.set('')"><mat-icon>close</mat-icon></button></div> }
+      <router-outlet />
+    </div>
+  </main>
+</div>

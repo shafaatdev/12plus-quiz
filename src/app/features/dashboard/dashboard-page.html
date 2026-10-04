@@ -1,0 +1,31 @@
+<section class="page-heading dashboard-heading">
+  <div>
+    <span class="eyebrow">YOUR 11+ LEARNING SPACE</span>
+    <h1>Learning dashboard</h1>
+    <p>Choose a subject to continue your practice.</p>
+  </div>
+</section>
+<section class="section-grid" aria-label="Learning sections">
+  <button class="section-card" type="button" (click)="navigate('vocabulary')">
+    <span class="section-card-top"><span class="section-icon vocabulary-icon"><mat-icon>menu_book</mat-icon></span><span class="section-status">AVAILABLE</span></span>
+    <span class="section-card-title">Vocabulary</span>
+    <span class="section-card-copy">Build word knowledge with focused practice and progress tracking.</span>
+    <span class="section-card-action">Open section <mat-icon>arrow_forward</mat-icon></span>
+  </button>
+  <button class="section-card" type="button" (click)="navigate('non-verbal')">
+    <span class="section-card-top"><span class="section-icon reasoning-icon"><mat-icon>extension</mat-icon></span><span class="section-status">NEW SECTION</span></span>
+    <span class="section-card-title">Non Verbal Reasoning</span>
+    <span class="section-card-copy">Ten visual questions, each with an image prompt and a written answer.</span>
+    <span class="section-card-action">View section <mat-icon>arrow_forward</mat-icon></span>
+  </button>
+  <article class="section-card section-card-disabled" aria-label="Maths, coming soon">
+    <span class="section-card-top"><span class="section-icon maths-icon"><mat-icon>calculate</mat-icon></span><span class="section-status">COMING SOON</span></span>
+    <span class="section-card-title">Maths</span>
+    <span class="section-card-copy">A dedicated place for your maths practice.</span>
+  </article>
+  <article class="section-card section-card-disabled" aria-label="Comprehension, coming soon">
+    <span class="section-card-top"><span class="section-icon comprehension-icon"><mat-icon>article</mat-icon></span><span class="section-status">COMING SOON</span></span>
+    <span class="section-card-title">Comprehension</span>
+    <span class="section-card-copy">Reading practice and questions in one focused section.</span>
+  </article>
+</section>

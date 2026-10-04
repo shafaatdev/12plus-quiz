@@ -58,6 +58,10 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 
 The app includes a 15-question vocabulary quiz, progress tracking, results review, quiz history, and CSV exports. Without Supabase credentials it runs in local preview mode and keeps progress in this browser's local storage.
 
+### Application structure
+
+The Angular app uses standalone feature pages with lazy-loaded routes. The root component initializes auth/data and hosts the router; the shared app shell owns navigation; feature folders own auth, dashboard, vocabulary, quiz/results, history, and non-verbal reasoning pages. Core services handle Supabase/auth/data, while shared services and components provide CSV export and confirmation dialogs. No NgModules are used.
+
 ### Supabase setup
 
 1. Create a Supabase project and add its project URL and publishable key to `src/environments/environment.ts`. Keep the service-role key out of browser code and source control.

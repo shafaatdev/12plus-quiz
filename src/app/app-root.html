@@ -1,0 +1,6 @@
+@if (loading()) {
+  <main class="loading-screen" aria-label="Loading vocabulary quiz"><p>Preparing your word list...</p></main>
+} @else {
+  @if (message()) { <div class="feedback-banner error-banner" role="alert">{{ message() }}</div> }
+  <router-outlet />
+}

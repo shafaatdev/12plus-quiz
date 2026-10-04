@@ -1,0 +1,45 @@
+@if (flow.activeQuiz(); as quiz) {
+  <section class="quiz-wrap">
+    <div class="quiz-heading"><button class="back-link" type="button" (click)="leaveQuiz()"><mat-icon>arrow_back</mat-icon> Leave quiz</button></div>
+    @if (flow.message()) { <div class="feedback-banner error-banner" role="alert">{{ flow.message() }}</div> }
+    <div class="quiz-progress-row"><span>QUESTION <strong>{{ flow.questionIndex() + 1 }}</strong> <span class="muted">OF {{ quiz.questionCount }}</span></span><span class="live-score"><mat-icon>check_circle</mat-icon> {{ quiz.correctCount }} correct</span></div>
+    <mat-progress-bar mode="determinate" [value]="flow.progress()" aria-label="Quiz progress"></mat-progress-bar>
+    @if (flow.currentQuestion(); as question) {
+      <mat-card class="question-card"><mat-card-content>
+        <span class="eyebrow">CHOOSE THE CLOSEST MEANING</span>
+        <h1>{{ question.word }}</h1>
+        <div class="example-row">
+          <p class="example-line">“{{ question.example }}”</p>
+          @if (flow.canSpeakExample) {
+            <button
+              mat-icon-button
+              class="speak-example-button"
+              type="button"
+              [attr.aria-label]="flow.speakingExample() ? 'Stop reading example' : 'Read example aloud'"
+              [attr.aria-pressed]="flow.speakingExample()"
+              [matTooltip]="flow.speakingExample() ? 'Stop reading' : 'Read example aloud'"
+              (click)="flow.toggleExampleSpeech(question.example)"
+            ><mat-icon>{{ flow.speakingExample() ? 'stop' : 'volume_up' }}</mat-icon></button>
+          }
+        </div>
+        <mat-radio-group class="answer-list" [value]="flow.selectedAnswer()" [disabled]="flow.answerSubmitted()" (change)="flow.selectedAnswer.set($event.value)" aria-label="Answer choices">
+          @for (option of question.options; track option; let optionIndex = $index) {
+            <mat-radio-button class="answer-option" [class.option-correct]="flow.answerSubmitted() && option === question.meaning" [class.option-incorrect]="flow.answerSubmitted() && option === flow.selectedAnswer() && option !== question.meaning" [value]="option">
+              <span>{{ option }}</span>
+              @if (flow.answerSubmitted() && option === question.meaning) { <mat-icon class="choice-result correct-result">check_circle</mat-icon> }
+              @else if (flow.answerSubmitted() && option === flow.selectedAnswer()) { <mat-icon class="choice-result incorrect-result">cancel</mat-icon> }
+            </mat-radio-button>
+          }
+        </mat-radio-group>
+        @if (flow.answerSubmitted()) {
+          <div class="answer-feedback" [class.feedback-correct]="question.isCorrect" [class.feedback-incorrect]="!question.isCorrect" role="status"><mat-icon>{{ question.isCorrect ? 'task_alt' : 'info' }}</mat-icon><span><strong>{{ question.isCorrect ? 'That is right.' : 'Not quite.' }}</strong> {{ question.isCorrect ? 'Keep it up.' : 'The correct meaning is shown above.' }}</span></div>
+        }
+        <div class="question-actions">
+          @if (!flow.answerSubmitted()) { <button mat-flat-button class="primary-action" type="button" [disabled]="!flow.selectedAnswer() || flow.pending()" (click)="flow.submitAnswer()">{{ flow.pending() ? 'Checking...' : 'Submit answer' }} <mat-icon>arrow_forward</mat-icon></button> }
+          @else { <button mat-flat-button class="primary-action" type="button" [disabled]="flow.pending()" (click)="nextQuestion()">{{ flow.questionIndex() + 1 === quiz.questionCount ? 'See your results' : 'Next question' }} <mat-icon>arrow_forward</mat-icon></button> }
+          <span class="keyboard-note">{{ question.number }} OF {{ quiz.questionCount }}</span>
+        </div>
+      </mat-card-content></mat-card>
+    }
+  </section>
+}

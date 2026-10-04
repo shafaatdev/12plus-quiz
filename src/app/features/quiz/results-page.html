@@ -1,0 +1,20 @@
+@if (flow.activeQuiz(); as quiz) {
+  <section class="results-wrap">
+    <span class="eyebrow">ROUND COMPLETE</span>
+    <h1>Nicely done.</h1>
+    <p class="results-subtitle">{{ flow.scoreMessage() }}</p>
+    <mat-card class="result-card"><mat-card-content>
+      <div class="result-score"><span class="result-number">{{ quiz.correctCount }}<small>/ {{ quiz.questionCount }}</small></span><span class="result-label">CORRECT ANSWERS</span></div>
+      <div class="result-divider"></div>
+      <div class="result-percent">{{ flow.scoreFor(quiz) }}<span>%</span><small>YOUR SCORE</small></div>
+      <div class="result-detail"><span class="result-dot"></span>{{ quiz.questionCount - quiz.correctCount }} {{ quiz.questionCount - quiz.correctCount === 1 ? 'word' : 'words' }} to review</div>
+    </mat-card-content></mat-card>
+    <mat-expansion-panel class="review-panel">
+      <mat-expansion-panel-header><mat-panel-title>Questions to review</mat-panel-title><mat-panel-description>{{ flow.reviewQuestions().length }} {{ flow.reviewQuestions().length === 1 ? 'word' : 'words' }}</mat-panel-description></mat-expansion-panel-header>
+      @if (flow.reviewQuestions().length) {
+        @for (question of flow.reviewQuestions(); track question.number) { <div class="review-row"><div><strong>{{ question.word }}</strong><span>Your answer: {{ question.selectedAnswer }}</span></div><div><span>Correct meaning</span><strong>{{ question.meaning }}</strong></div></div> }
+      } @else { <p class="perfect-note">A perfect round. Nothing to review.</p> }
+    </mat-expansion-panel>
+    <div class="result-actions"><a mat-stroked-button class="download-button" routerLink="/vocabulary/history"><mat-icon>history</mat-icon> View history</a><button mat-flat-button class="primary-action" type="button" (click)="takeAnotherQuiz()">Take another quiz <mat-icon>arrow_forward</mat-icon></button></div>
+  </section>
+}

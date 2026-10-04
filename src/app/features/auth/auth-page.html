@@ -1,0 +1,61 @@
+<main class="auth-screen">
+  <section class="auth-panel" aria-labelledby="auth-title">
+    <a class="brand-lockup" routerLink="/dashboard" aria-label="Vocab Master home">
+      <span class="brand-mark"><mat-icon>auto_stories</mat-icon></span>
+      <span>Vocab<span class="brand-light">Master</span></span>
+    </a>
+    <span class="eyebrow">YOUR PERSONAL WORD DESK</span>
+    <h1 id="auth-title">{{ isSignUp() ? 'Create your account' : 'Welcome back' }}</h1>
+    <p class="auth-copy">Sign in to keep your progress and quiz history in sync.</p>
+    @if (message()) { <p class="feedback-banner error-banner" role="alert">{{ message() }}</p> }
+    @if (notice()) { <p class="feedback-banner info-banner" role="status">{{ notice() }}</p> }
+    <form class="auth-form" [formGroup]="authForm" (ngSubmit)="submit()">
+      @if (isSignUp()) {
+        <mat-form-field appearance="outline">
+          <mat-label>Display Name</mat-label>
+          <input matInput type="text" formControlName="displayName" autocomplete="name" maxlength="50" />
+          @if (authForm.controls.displayName.touched && authForm.controls.displayName.hasError('required')) { <mat-error>Display name is required.</mat-error> }
+          @if (authForm.controls.displayName.touched && authForm.controls.displayName.hasError('maxlength')) { <mat-error>Use 50 characters or fewer.</mat-error> }
+        </mat-form-field>
+      }
+      <mat-form-field appearance="outline">
+        <mat-label>Email address</mat-label>
+        <input matInput type="email" formControlName="email" autocomplete="email" />
+        @if (authForm.controls.email.touched && authForm.controls.email.hasError('email')) { <mat-error>Enter a valid email address.</mat-error> }
+        @if (authForm.controls.email.touched && authForm.controls.email.hasError('required')) { <mat-error>Email is required.</mat-error> }
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" formControlName="password" [autocomplete]="isSignUp() ? 'new-password' : 'current-password'" />
+        @if (authForm.controls.password.touched && authForm.controls.password.hasError('minlength')) { <mat-error>Use at least 6 characters.</mat-error> }
+        @if (authForm.controls.password.touched && authForm.controls.password.hasError('required')) { <mat-error>Password is required.</mat-error> }
+      </mat-form-field>
+      @if (isSignUp()) {
+        <mat-form-field appearance="outline">
+          <mat-label>Confirm Password</mat-label>
+          <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
+          @if (authForm.controls.confirmPassword.touched && authForm.controls.confirmPassword.hasError('required')) { <mat-error>Confirm your password.</mat-error> }
+          @if (authForm.controls.confirmPassword.touched && authForm.controls.confirmPassword.hasError('passwordMismatch')) { <mat-error>Passwords do not match.</mat-error> }
+        </mat-form-field>
+      }
+      <button mat-flat-button class="primary-action auth-submit" type="submit" [disabled]="pending()">
+        {{ pending() ? 'Please wait...' : isSignUp() ? 'Create account' : 'Sign in' }}
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </form>
+    <p class="auth-switch">
+      {{ isSignUp() ? 'Already have an account?' : 'New to Vocab Master?' }}
+      <button type="button" class="text-button" (click)="toggleMode()">{{ isSignUp() ? 'Sign in' : 'Create account' }}</button>
+    </p>
+    <p class="auth-footnote">Your learning history is private to your account.</p>
+  </section>
+  <aside class="auth-art" aria-hidden="true">
+    <div class="art-index">FIELD NOTES / 001</div>
+    <div class="book-stack">
+      <span class="book book-one"></span><span class="book book-two"></span><span class="book book-three"></span>
+      <span class="book-word">WORD<br />BY WORD</span>
+    </div>
+    <p>Make room for<br /><em>better words.</em></p>
+    <span class="art-caption">A LITTLE PRACTICE ADDS UP</span>
+  </aside>
+</main>

@@ -1,0 +1,45 @@
+<section class="page-heading history-heading">
+  <div>
+    <a class="back-link" routerLink="/vocabulary"><mat-icon>arrow_back</mat-icon> Back</a>
+    <h1>Quiz history</h1><p>Look back, spot your patterns, and keep growing.</p>
+  </div>
+  <button mat-flat-button class="primary-action" type="button" [disabled]="pending() || flow.pending() || !toLearnCount()" (click)="startQuiz()">Start a quiz <mat-icon>arrow_forward</mat-icon></button>
+</section>
+@if (message()) { <div class="feedback-banner" role="status"><span>{{ message() }}</span><button mat-icon-button type="button" aria-label="Dismiss message" (click)="message.set('')"><mat-icon>close</mat-icon></button></div> }
+<section class="history-stats" aria-label="Quiz summary">
+  <div><span>TOTAL QUIZZES</span><strong>{{ historyStats().total }}</strong></div>
+  <div><span>AVERAGE SCORE</span><strong>{{ historyStats().average }}<small>%</small></strong></div>
+  <div><span>HIGHEST SCORE</span><strong>{{ historyStats().highest }}<small>%</small></strong></div>
+  <div><span>LOWEST SCORE</span><strong>{{ historyStats().lowest }}<small>%</small></strong></div>
+</section>
+<section class="history-list-section">
+  <div class="history-list-heading"><div><span class="eyebrow">PAST ROUNDS</span><h2>Your quizzes</h2></div><span>{{ completedHistory().length }} COMPLETED</span></div>
+  @if (completedHistory().length) {
+    <div class="history-list">
+      @for (quiz of completedHistory(); track quiz.id) {
+        <article class="history-item">
+          <div class="history-item-main">
+            <div class="score-ring" [style.--score]="scoreFor(quiz) + '%'" [attr.aria-label]="scoreFor(quiz) + ' percent score'"><span>{{ scoreFor(quiz) }}<small>%</small></span></div>
+            <div class="history-date"><strong>{{ dateLabel(quiz.startedAt) }}</strong><span>{{ quiz.questionCount }} questions <i></i> {{ quiz.correctCount }} correct</span></div>
+            <div class="history-missed"><span class="missed-dot"></span>{{ incorrectCount(quiz) }} to review</div>
+            <div class="history-actions"><button mat-stroked-button type="button" class="small-outline" (click)="selectHistory(quiz.id)">{{ selectedHistoryId() === quiz.id ? 'Hide details' : 'View details' }}</button><button mat-icon-button type="button" aria-label="Export review" matTooltip="Export review" (click)="exportReview(quiz)"><mat-icon>download</mat-icon></button></div>
+          </div>
+          @if (selectedHistoryId() === quiz.id) {
+            <div class="history-detail">
+              @for (question of quiz.questions; track question.number) { <div class="review-row"><div><strong>{{ question.word }}</strong><span>Your answer: {{ question.selectedAnswer ?? 'Not answered' }}</span></div><div><span>Correct meaning</span><strong>{{ question.meaning }}</strong></div><mat-icon [class.correct-result]="question.isCorrect" [class.incorrect-result]="question.isCorrect === false">{{ question.isCorrect ? 'check_circle' : 'cancel' }}</mat-icon></div> }
+            </div>
+          }
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="history-empty"><span><mat-icon>history</mat-icon></span><h3>No completed quizzes yet</h3><p>Your finished rounds will show up here.</p><button mat-flat-button class="primary-action" type="button" [disabled]="flow.pending() || !toLearnCount()" (click)="startQuiz()">Start your first quiz <mat-icon>arrow_forward</mat-icon></button></div>
+  }
+</section>
+<section class="history-tools">
+  <div><span class="eyebrow">YOUR DATA</span><h2>Progress controls</h2><p>Reset mastered words without removing your past quizzes, or clear your saved history and progress.</p></div>
+  <div class="history-tool-actions">
+    <button mat-stroked-button type="button" class="download-button" [disabled]="pending() || !masteredCount()" (click)="resetProgress()"><mat-icon>restart_alt</mat-icon> Reset progress</button>
+    <button mat-stroked-button type="button" class="clear-button" [disabled]="pending() || (!history().length && !masteredCount())" (click)="clearAll()"><mat-icon>delete_outline</mat-icon> Clear all</button>
+  </div>
+</section>
