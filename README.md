@@ -69,6 +69,12 @@ The Angular app uses standalone feature pages with lazy-loaded routes. The root 
 3. Copy `.env.example` to `.env`, then fill in `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` from your Supabase project. Import `public/vocabularies.json` after the migration by running `npm run import:vocabularies`. The `.env` file is git-ignored, and the service-role key is used only by this one-time Node script.
 4. Run `npm start`. Account creation and sign-in use Supabase Auth; progress and quiz history are scoped to the signed-in user.
 
+### Non Verbal Reasoning data
+
+Review `supabase/migrations/20261005174251_non_verbal_quiz.sql` before applying it. It creates the shared question bank and user-scoped progress, attempts, and timed answer tables with RLS and explicit Data API grants. The migration is not applied automatically.
+
+Place the full `question,answer` CSV at `data/non-verbal-answers.csv` (or pass its path), then run `npm run nvr:seed-sql`. The generator validates the 143 rows, answer letters, unique IDs, and matching `public/NVR/<question-id>.png` images, then writes `supabase/seed/non_verbal_questions.sql` for review and execution in the Supabase SQL Editor. NVR attempt history and progress are stored in Supabase for the signed-in user.
+
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

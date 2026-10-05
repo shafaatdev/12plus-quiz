@@ -6,7 +6,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ConfirmationService } from '../../shared/services/confirmation.service';
 import { NonVerbalAttempt, NonVerbalChoice, NON_VERBAL_CHOICES } from './non-verbal.models';
-import { NonVerbalQuizService } from './non-verbal-quiz.service';
+import { NonVerbalDataService } from './non-verbal-data.service';
 
 type NonVerbalView = 'overview' | 'quiz' | 'results' | 'history';
 
@@ -16,10 +16,12 @@ type NonVerbalView = 'overview' | 'quiz' | 'results' | 'history';
   templateUrl: './non-verbal-page.html',
 })
 export class NonVerbalPage implements OnInit, OnDestroy {
-  readonly quiz = inject(NonVerbalQuizService);
+  readonly quiz = inject(NonVerbalDataService);
   private readonly confirmation = inject(ConfirmationService);
 
   readonly view = signal<NonVerbalView>('overview');
+  readonly loading = signal(true);
+  readonly pageError = signal('');
   readonly selectedAnswer = signal<NonVerbalChoice | null>(null);
   readonly answerSubmitted = signal(false);
   readonly clock = signal(Date.now());
@@ -48,33 +50,55 @@ export class NonVerbalPage implements OnInit, OnDestroy {
 
   private clockInterval: number | null = null;
 
-  ngOnInit(): void {
-    this.clockInterval = window.setInterval(() => this.clock.set(Date.now()), 250);
+  async ngOnInit(): Promise<void> {
+    this.clockInterval = window.setInterval(() => this.clock.set(Date.now()), 1000);
+    try {
+      await this.quiz.load();
+    } catch (error) {
+      this.pageError.set(error instanceof Error ? error.message : 'Unable to load Non Verbal questions.');
+    } finally {
+      this.loading.set(false);
+    }
   }
 
   ngOnDestroy(): void {
     if (this.clockInterval !== null) window.clearInterval(this.clockInterval);
   }
 
-  startQuiz(): void {
-    this.quiz.startQuiz();
+  async startQuiz(): Promise<void> {
+    this.pageError.set('');
+    if (!await this.quiz.startQuiz()) {
+      this.pageError.set(this.quiz.error());
+      return;
+    }
     this.selectedAnswer.set(null);
     this.answerSubmitted.set(false);
     this.view.set('quiz');
   }
 
-  submitAnswer(): void {
+  async submitAnswer(): Promise<void> {
     const selectedAnswer = this.selectedAnswer();
     if (!selectedAnswer || this.answerSubmitted()) return;
-    this.quiz.answerCurrentQuestion(selectedAnswer);
-    this.answerSubmitted.set(true);
+    this.pageError.set('');
+    try {
+      await this.quiz.answerCurrentQuestion(selectedAnswer);
+      this.answerSubmitted.set(true);
+    } catch (error) {
+      this.pageError.set(error instanceof Error ? error.message : 'Unable to save this answer.');
+    }
   }
 
-  advanceQuestion(): void {
-    if (this.quiz.advance()) {
+  async advanceQuestion(): Promise<void> {
+    const isLastQuestion = this.quiz.questionIndex() + 1 === (this.quiz.activeAttempt()?.questions.length ?? 0);
+    this.pageError.set('');
+    if (await this.quiz.advance()) {
       this.answerSubmitted.set(false);
       this.selectedAnswer.set(null);
       this.view.set('results');
+      return;
+    }
+    if (isLastQuestion && this.quiz.error()) {
+      this.pageError.set(this.quiz.error());
       return;
     }
     this.answerSubmitted.set(false);
@@ -88,8 +112,12 @@ export class NonVerbalPage implements OnInit, OnDestroy {
       confirmLabel: 'Leave test',
     });
     if (!confirmed) return;
-    this.quiz.activeAttempt.set(null);
-    this.view.set('overview');
+    try {
+      await this.quiz.discardActiveAttempt();
+      this.view.set('overview');
+    } catch (error) {
+      this.pageError.set(error instanceof Error ? error.message : 'Unable to discard this test.');
+    }
   }
 
   imageUrl(questionId: string): string {

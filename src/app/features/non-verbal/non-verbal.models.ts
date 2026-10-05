@@ -8,6 +8,7 @@ export interface NonVerbalQuestionDefinition {
 }
 
 export interface NonVerbalQuestionResult extends NonVerbalQuestionDefinition {
+  number: number;
   selectedAnswer: NonVerbalChoice | null;
   isCorrect: boolean | null;
   durationMs: number | null;
