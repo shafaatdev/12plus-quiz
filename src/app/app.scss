@@ -1,3 +1,5 @@
+@use './features/non-verbal/non-verbal-page';
+
 app-root { display: block; min-height: 100dvh; }
 .app-shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); min-height: 100dvh; background: var(--canvas); }
 .mobile-topbar, .mobile-menu-backdrop { display: none; }
@@ -261,7 +263,7 @@ button.section-card:focus-visible { outline: 3px solid #9fbd5e; outline-offset: 
 .auth-art > p { position: relative; z-index: 1; margin: auto 0 24px; font-size: 23px; font-weight: 600; line-height: 1.35; }
 .auth-art > p em { color: #d4ed8a; font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 400; }
 @media (max-width: 1050px) { .page-content { padding-inline: 28px; } .topbar { padding-inline: 28px; } .home-lower { gap: 20px; } .history-missed { display: none; } }
-@media (max-width: 840px) {
+@media (max-width: 860px) {
 	.app-shell { display: block; min-height: 100dvh; }
 	.sidebar { position: fixed; z-index: 21; inset: 0 auto 0 0; width: min(86vw, 300px); height: 100dvh; padding: 20px 18px; box-shadow: 12px 0 32px rgb(16 31 24 / 22%); transform: translateX(-105%); visibility: hidden; transition: transform 220ms ease, visibility 220ms; }
 	.sidebar.mobile-open { transform: translateX(0); visibility: visible; }
@@ -354,7 +356,7 @@ button.section-card:focus-visible { outline: 3px solid #9fbd5e; outline-offset: 
 	.history-date { flex-basis: calc(100% - 65px); }
 }
 
-@media (max-width: 840px) {
+@media (max-width: 860px) {
 	:root {
 		--mobile-meta-size: 13px;
 		--mobile-body-size: 15px;

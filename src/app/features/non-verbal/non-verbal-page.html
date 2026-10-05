@@ -1,18 +1,109 @@
-<section class="section-detail">
-  <header class="page-heading section-detail-heading">
-    <div>
-      <a class="back-link" routerLink="/dashboard"><mat-icon>arrow_back</mat-icon> All sections</a>
-      <h1>Non Verbal Reasoning</h1>
-      <p>Work through image-based patterns and enter an answer for each question.</p>
-    </div>
-  </header>
-  <section class="reasoning-format" aria-labelledby="reasoning-format-title">
-    <div class="reasoning-format-heading"><span class="section-icon reasoning-icon"><mat-icon>extension</mat-icon></span><div><span class="eyebrow">QUESTION FORMAT</span><h2 id="reasoning-format-title">A visual round</h2></div></div>
-    <div class="reasoning-format-grid">
-      <div><span class="format-number">10</span><strong>Questions</strong><small>One round at a time</small></div>
-      <div><span class="format-symbol"><mat-icon>image</mat-icon></span><strong>Image prompts</strong><small>Each question is shown as an image</small></div>
-      <div><span class="format-symbol"><mat-icon>edit</mat-icon></span><strong>Written answers</strong><small>Enter an answer for each prompt</small></div>
-    </div>
-  </section>
-  <p class="section-preparation"><mat-icon>hourglass_top</mat-icon> Question content is being prepared.</p>
-</section>
+@switch (view()) {
+  @case ('overview') {
+    <section class="section-detail nvr-section">
+      <header class="page-heading section-detail-heading"><div><span class="eyebrow">VISUAL PROBLEM SOLVING</span><h1>Non Verbal Reasoning</h1><p>Work through image-based patterns and enter an answer for each question.</p></div></header>
+      <section class="reasoning-format" aria-labelledby="reasoning-format-title">
+        <div class="reasoning-format-heading"><span class="section-icon reasoning-icon"><mat-icon>extension</mat-icon></span><div><span class="eyebrow">QUESTION FORMAT</span><h2 id="reasoning-format-title">A visual round</h2></div></div>
+        <div class="reasoning-format-grid">
+          <div><span class="format-number">10</span><strong>Questions</strong><small>Randomly selected from 29 puzzles</small></div>
+          <div><span class="format-symbol"><mat-icon>image</mat-icon></span><strong>Image prompts</strong><small>One visual puzzle per question</small></div>
+          <div><span class="format-symbol"><mat-icon>timer</mat-icon></span><strong>Timed practice</strong><small>Question and total test times recorded</small></div>
+        </div>
+      </section>
+      <div class="nvr-actions">
+        <button mat-flat-button class="primary-action" type="button" (click)="startQuiz()">Start a test <mat-icon>arrow_forward</mat-icon></button>
+        <button mat-stroked-button class="download-button" type="button" [disabled]="!quiz.attempts().length" (click)="view.set('history')"><mat-icon>history</mat-icon> Test history</button>
+      </div>
+      @if (quiz.attempts().length) {
+        <section class="nvr-summary" aria-label="Non-verbal test summary">
+          <div><span>COMPLETED TESTS</span><strong>{{ historyStats().count }}</strong></div>
+          <div><span>AVERAGE SCORE</span><strong>{{ historyStats().average }}%</strong></div>
+          <div><span>BEST SCORE</span><strong>{{ historyStats().best }}%</strong></div>
+          <div><span>LAST TEST</span><strong>{{ dateLabel(quiz.attempts()[0].startedAt) }}</strong></div>
+        </section>
+      }
+    </section>
+  }
+
+  @case ('quiz') {
+    @if (quiz.activeAttempt(); as attempt) {
+      @if (quiz.currentQuestion(); as question) {
+        <section class="nvr-quiz">
+          <div class="quiz-heading"><button class="back-link" type="button" (click)="leaveQuiz()"><mat-icon>arrow_back</mat-icon> Leave test</button><span class="nvr-total-time"><mat-icon>timer</mat-icon> {{ formatDuration(testElapsedMs()) }} elapsed</span></div>
+          <div class="quiz-progress-row"><span>QUESTION <strong>{{ quiz.questionIndex() + 1 }}</strong> <span class="muted">OF {{ attempt.questions.length }}</span></span><span class="live-score"><mat-icon>check_circle</mat-icon> {{ attempt.correctCount }} correct</span></div>
+          <mat-progress-bar mode="determinate" [value]="quiz.progress()" aria-label="Non-verbal test progress"></mat-progress-bar>
+          <article class="nvr-question">
+            <div class="nvr-question-heading"><span class="eyebrow">QUESTION {{ quiz.questionIndex() + 1 }}</span><span class="nvr-question-time"><mat-icon>schedule</mat-icon> {{ formatDuration(question.durationMs ?? currentQuestionElapsedMs()) }}</span></div>
+            <img class="nvr-image" [src]="imageUrl(question.id)" [alt]="'Non-verbal reasoning puzzle ' + question.id" />
+            <h2 class="nvr-prompt">Choose the correct option</h2>
+            <mat-radio-group class="nvr-options" [value]="selectedAnswer()" [disabled]="answerSubmitted()" (change)="selectedAnswer.set($event.value)" aria-label="Choose an answer from A to E">
+              @for (choice of choices; track choice) {
+                <mat-radio-button class="nvr-option" [class.nvr-option-correct]="answerSubmitted() && choice === question.answer" [class.nvr-option-incorrect]="answerSubmitted() && choice === selectedAnswer() && choice !== question.answer" [value]="choice"><span class="nvr-option-letter">{{ choice }}</span></mat-radio-button>
+              }
+            </mat-radio-group>
+            @if (answerSubmitted()) {
+              <div class="answer-feedback" [class.feedback-correct]="question.isCorrect" [class.feedback-incorrect]="!question.isCorrect" role="status"><mat-icon>{{ question.isCorrect ? 'task_alt' : 'info' }}</mat-icon><span><strong>{{ question.isCorrect ? 'Correct.' : 'Not quite.' }}</strong> The answer is {{ question.answer }}. Time: {{ formatDuration(question.durationMs) }}.</span></div>
+            }
+            <div class="question-actions">
+              @if (!answerSubmitted()) { <button mat-flat-button class="primary-action" type="button" [disabled]="!selectedAnswer()" (click)="submitAnswer()">Submit answer <mat-icon>arrow_forward</mat-icon></button> }
+              @else { <button mat-flat-button class="primary-action" type="button" (click)="advanceQuestion()">{{ quiz.questionIndex() + 1 === attempt.questions.length ? 'See results' : 'Next question' }} <mat-icon>arrow_forward</mat-icon></button> }
+              <span class="keyboard-note">{{ quiz.answeredCount() }} OF {{ attempt.questions.length }} ANSWERED</span>
+            </div>
+          </article>
+        </section>
+      }
+    }
+  }
+
+  @case ('results') {
+    @if (quiz.activeAttempt(); as attempt) {
+      <section class="nvr-results">
+        <button class="back-link" type="button" (click)="view.set('overview')"><mat-icon>arrow_back</mat-icon> Non Verbal Reasoning</button>
+        <span class="eyebrow">TEST COMPLETE</span><h1>Your results</h1><p class="results-subtitle">This test has been saved in this browser.</p>
+        <section class="nvr-results-summary" aria-label="Test results">
+          <div><span>SCORE</span><strong>{{ attempt.correctCount }} / {{ attempt.questions.length }}</strong></div>
+          <div><span>PERCENTAGE</span><strong>{{ scoreFor(attempt) }}%</strong></div>
+          <div><span>TOTAL TIME</span><strong>{{ formatDuration(attempt.totalDurationMs) }}</strong></div>
+        </section>
+        <h2>Question review</h2>
+        <div class="nvr-review-list">
+          @for (question of attempt.questions; track question.id) {
+            <article class="nvr-review-item">
+              <div class="nvr-review-heading"><strong>{{ question.id }}</strong><span [class.review-correct]="question.isCorrect" [class.review-incorrect]="!question.isCorrect">{{ question.isCorrect ? 'Correct' : 'Incorrect' }}</span><span>{{ formatDuration(question.durationMs) }}</span></div>
+              <img class="nvr-review-image" [src]="imageUrl(question.id)" [alt]="'Non-verbal reasoning puzzle ' + question.id" />
+              <p>Your answer: <strong>{{ question.selectedAnswer }}</strong> <span aria-hidden="true">·</span> Correct answer: <strong>{{ question.answer }}</strong></p>
+            </article>
+          }
+        </div>
+        <div class="result-actions"><button mat-stroked-button class="download-button" type="button" (click)="view.set('history')"><mat-icon>history</mat-icon> Test history</button><button mat-flat-button class="primary-action" type="button" (click)="startQuiz()">Take another test <mat-icon>arrow_forward</mat-icon></button></div>
+      </section>
+    }
+  }
+
+  @case ('history') {
+    <section class="nvr-history">
+      <button class="back-link" type="button" (click)="view.set('overview')"><mat-icon>arrow_back</mat-icon> Non Verbal Reasoning</button>
+      <header class="page-heading"><div><span class="eyebrow">LOCAL TO THIS BROWSER</span><h1>Non Verbal test history</h1><p>Your completed tests and timing are stored on this device.</p></div></header>
+      <section class="nvr-results-summary" aria-label="Non-verbal test summary"><div><span>COMPLETED TESTS</span><strong>{{ historyStats().count }}</strong></div><div><span>AVERAGE SCORE</span><strong>{{ historyStats().average }}%</strong></div><div><span>BEST SCORE</span><strong>{{ historyStats().best }}%</strong></div></section>
+      @if (quiz.attempts().length) {
+        <div class="nvr-history-list">
+          @for (attempt of quiz.attempts(); track attempt.id) {
+            <article class="nvr-history-item">
+              <button class="nvr-history-toggle" type="button" [attr.aria-expanded]="selectedHistoryId() === attempt.id" (click)="reviewAttempt(attempt.id)">
+                <span class="score-ring" [style.--score]="scoreFor(attempt) + '%'" [attr.aria-label]="scoreFor(attempt) + ' percent score'"><span>{{ scoreFor(attempt) }}<small>%</small></span></span>
+                <span class="nvr-history-meta"><strong>{{ dateLabel(attempt.startedAt) }}</strong><small>{{ attempt.correctCount }} of {{ attempt.questions.length }} correct · {{ formatDuration(attempt.totalDurationMs) }}</small></span><mat-icon>{{ selectedHistoryId() === attempt.id ? 'expand_less' : 'expand_more' }}</mat-icon>
+              </button>
+              @if (selectedHistoryId() === attempt.id) {
+                <div class="nvr-history-review">
+                  @for (question of attempt.questions; track question.id) { <div class="nvr-history-answer"><span>{{ question.id }}</span><span>Your answer: {{ question.selectedAnswer }}</span><span>Correct: {{ question.answer }}</span><span>{{ formatDuration(question.durationMs) }}</span></div> }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="history-empty"><span><mat-icon>history</mat-icon></span><h2>No tests yet</h2><p>Completed Non Verbal Reasoning tests will appear here.</p><button mat-flat-button class="primary-action" type="button" (click)="startQuiz()">Start your first test <mat-icon>arrow_forward</mat-icon></button></div>
+      }
+    </section>
+  }
+}
